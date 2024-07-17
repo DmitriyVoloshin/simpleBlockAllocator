@@ -1,1 +1,2 @@
-Simple block allocator test project
+Simple block allocator project.
+Made for an interview.
