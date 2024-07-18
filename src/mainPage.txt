@@ -1,0 +1,5 @@
+/*! \mainpage Block allocator module
+ *
+ * This project is a test project.
+ * It implements a simple thread-safe allocator.
+ */
