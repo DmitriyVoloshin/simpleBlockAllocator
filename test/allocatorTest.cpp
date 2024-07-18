@@ -195,19 +195,28 @@ TEST(Allocation, lastBlockAddressIsCorrect)
 
 TEST(Allocation, canUseWithMoreThenOneByteSizeVariablesBoundsCheck)
 {
-	BlockAllocator ba {sizeof(unsigned long), numOfBlocks};
+	size_t blockSize = 4;
+	const char expected = -1;
+	BlockAllocator ba {blockSize, numOfBlocks};
 
-	unsigned long* first = (unsigned long*)ba.allocate();
-	unsigned long* second = (unsigned long*)ba.allocate();
-	unsigned long* third = (unsigned long*)ba.allocate();
+	char* first = (char*)ba.allocate();
+	char* firstEnd = first + blockSize - 1;
+	char* second = (char*)ba.allocate();
+	char* secondEnd = second + blockSize - 1;
+	char* third = (char*)ba.allocate();
 
-	*first = 0x7FFFFFFFFFFFFFFE;
-	*second = 0xFFFFFFFFFFFFFFFF;
-	*third = 0x7FFFFFFFFFFFFFFE;
+	*first = expected;
+	*firstEnd = expected;
+	*second = expected;
+	*secondEnd = expected;
+	*third = expected;
 
-	UNSIGNED_LONGS_EQUAL(*first, 0x7FFFFFFFFFFFFFFE);
-	UNSIGNED_LONGS_EQUAL(*second, 0xFFFFFFFFFFFFFFFF);
-	UNSIGNED_LONGS_EQUAL(*third, 0x7FFFFFFFFFFFFFFE);
+
+	LONGS_EQUAL(*first, expected);
+	LONGS_EQUAL(*firstEnd, expected);
+	LONGS_EQUAL(*second, expected);
+	LONGS_EQUAL(*secondEnd, expected);
+	LONGS_EQUAL(*third, expected);
 }
 
 
@@ -525,8 +534,6 @@ TEST_GROUP(ThreadSafety)
 	BlockAllocator* ba;
 	AllocatorSpy* as;
 
-	void* start = NULL;
-	void* end = NULL;
 	void* firstBlock = NULL;
 	void* lastBlock = NULL;
 
@@ -551,9 +558,6 @@ TEST_GROUP(ThreadSafety)
 
     	fullBlockSize = blockSize + ba->getHeaderSize();
 
-    	start = as->getStart();
-    	end = as->getEnd();
-
     	firstBlock = as->getFirstBlock();
 		lastBlock = as->getLastBlock();
 
@@ -568,7 +572,6 @@ TEST_GROUP(ThreadSafety)
     	delete ba;
 	}
 };
-
 
 static void getBlock(BlockAllocator* ba, void** block)
 {
@@ -598,13 +601,13 @@ TEST(ThreadSafety, twoThreadsCanGetAnAddressSimultaneously)
 
 
 
-static void get2Blocks(BlockAllocator* ba, void** block1, void** block2, const char* msg)
+static void get2Blocks(BlockAllocator* ba, void** block1, void** block2)
 {
 	*block1 = ba->allocate();
 	*block2 = ba->allocate();
 }
 
-static void release2Blocks(BlockAllocator* ba, void** block1, void** block2, const char* msg)
+static void release2Blocks(BlockAllocator* ba, void** block1, void** block2)
 {
 	ba->deallocate(*block1);
 	ba->deallocate(*block2);
@@ -614,9 +617,9 @@ static void multipleAlloctionsAndDeallocations(int num, BlockAllocator* ba, void
 {
 	for (int i = 0; i < num; i++)
 	{
-		get2Blocks(ba, block1, block2, "");
+		get2Blocks(ba, block1, block2);
 		std::this_thread::sleep_for(std::chrono::microseconds(100));
-		release2Blocks(ba, block1, block2, "");
+		release2Blocks(ba, block1, block2);
 	}
 	++threadsComplete;
 }
@@ -652,7 +655,7 @@ TEST(ThreadSafety, catchingAnExceptionDoesntLockTheAllocator)
 
 	while (threadsComplete.load() != 3)
 	{
-		std::this_thread::sleep_for(std::chrono::microseconds(1000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100));
 	}
 }
 
@@ -735,7 +738,7 @@ TEST_GROUP(MultithreadWork)
     			std::cout << e.what();
     		}
 
-    		std::this_thread::sleep_for(std::chrono::microseconds(10));
+    		std::this_thread::sleep_for(std::chrono::microseconds(100));
     	}
     }
 
@@ -781,7 +784,7 @@ TEST(MultithreadWork, canFillAllocatorCallAllocationExceptionReleaseAndAllocateA
 
 	while (threadsComplete.load() != 12)
 	{
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+		std::this_thread::sleep_for(std::chrono::microseconds(200));
 	}
 
 	CHECK_FALSE(isDuplicateFound());
