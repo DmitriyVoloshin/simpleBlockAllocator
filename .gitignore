@@ -1,6 +1,4 @@
-.settings
-.cproject
-.project
-Debug
-Libs
-gtest-cmake
+
+build
+
+

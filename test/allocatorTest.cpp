@@ -472,7 +472,7 @@ TEST_GROUP(ExternalPool)
     }
     void teardown()
     {
-    	std::free(pool);
+    	free(pool);
 	}
 };
 
