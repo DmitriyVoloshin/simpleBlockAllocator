@@ -592,7 +592,7 @@ TEST(ThreadSafety, twoThreadsCanGetAnAddressSimultaneously)
 
 	while (threadsComplete.load() != 2)
 	{
-		std::this_thread::sleep_for(std::chrono::microseconds(1));
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
 	}
 	CHECK_FALSE(block1 == block2);
 	CHECK_TRUE(block1 == expected1 || block2 == expected1);
@@ -618,7 +618,7 @@ static void multipleAlloctionsAndDeallocations(int num, BlockAllocator* ba, void
 	for (int i = 0; i < num; i++)
 	{
 		get2Blocks(ba, block1, block2);
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+//		std::this_thread::sleep_for(std::chrono::microseconds(10));
 		release2Blocks(ba, block1, block2);
 	}
 	++threadsComplete;
@@ -636,7 +636,7 @@ static void makeASafeException(BlockAllocator* ba)
 		{
 			//Do nothing
 		}
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
 	}
 	++threadsComplete;
 }
@@ -655,7 +655,7 @@ TEST(ThreadSafety, catchingAnExceptionDoesntLockTheAllocator)
 
 	while (threadsComplete.load() != 3)
 	{
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+		std::this_thread::sleep_for(std::chrono::microseconds(10));
 	}
 }
 
@@ -719,7 +719,7 @@ TEST_GROUP(MultithreadWork)
     			std::cout << e.what();
     		}
 
-    		std::this_thread::sleep_for(std::chrono::microseconds(100));
+    		std::this_thread::sleep_for(std::chrono::microseconds(10));
     	}
     }
 
@@ -738,7 +738,7 @@ TEST_GROUP(MultithreadWork)
     			std::cout << e.what();
     		}
 
-    		std::this_thread::sleep_for(std::chrono::microseconds(100));
+    		std::this_thread::sleep_for(std::chrono::microseconds(10));
     	}
     }
 
@@ -751,7 +751,7 @@ TEST_GROUP(MultithreadWork)
 
     	while (threadsComplete.load() != 6)
     	{
-    		std::this_thread::sleep_for(std::chrono::microseconds(100));
+    		std::this_thread::sleep_for(std::chrono::microseconds(10));
     	}
     	getBlocks(ba, blocks, numOfBlocks);
     	threadsComplete++;
@@ -784,7 +784,7 @@ TEST(MultithreadWork, canFillAllocatorCallAllocationExceptionReleaseAndAllocateA
 
 	while (threadsComplete.load() != 12)
 	{
-		std::this_thread::sleep_for(std::chrono::microseconds(200));
+		std::this_thread::sleep_for(std::chrono::microseconds(100));
 	}
 
 	CHECK_FALSE(isDuplicateFound());
